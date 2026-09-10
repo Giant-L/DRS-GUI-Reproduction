@@ -83,11 +83,11 @@ def load_image(image: ImageInput) -> Image.Image:
 
 
 def image_to_data_url(image: Image.Image) -> str:
-    rgb_image = image.convert("RGB")
     buffer = io.BytesIO()
-    rgb_image.save(buffer, format="JPEG", quality=95)
+    # GUI grounding depends on tiny text and icons, so avoid lossy JPEG artifacts.
+    image.save(buffer, format="PNG")
     encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
-    return f"data:image/jpeg;base64,{encoded}"
+    return f"data:image/png;base64,{encoded}"
 
 
 def parse_coordinate(raw_output: str) -> PixelPoint:
