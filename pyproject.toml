@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "drsgui-reproduction"
+version = "0.1.0"
+description = "A paper reimplementation of DRS-GUI, beginning with a reproducible full-screen grounding baseline."
+requires-python = ">=3.10"
+dependencies = [
+    "Pillow>=10,<13",
+    "python-dotenv>=1,<2",
+    "requests>=2.31,<3",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+markers = [
+    "network: requires network access and external credentials",
+    "gpu: requires a local GPU-backed model server",
+]
