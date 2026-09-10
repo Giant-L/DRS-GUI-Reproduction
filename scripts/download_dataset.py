@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
-from huggingface_hub import snapshot_download
+from huggingface_hub import HfApi, snapshot_download
 
 from drsgui.dataset import ScreenSpotProDataset
 
@@ -36,10 +38,12 @@ def main() -> None:
     if args.max_workers <= 0 or args.verify_samples <= 0:
         raise SystemExit("--max-workers and --verify-samples must be positive")
     load_dotenv(override=False)
+    dataset_info = HfApi().dataset_info(args.repo_id, revision=args.revision)
+    resolved_revision = dataset_info.sha
     local_dir = snapshot_download(
         repo_id=args.repo_id,
         repo_type="dataset",
-        revision=args.revision,
+        revision=resolved_revision,
         local_dir=args.output,
         max_workers=args.max_workers,
     )
@@ -51,7 +55,20 @@ def main() -> None:
         )
     indices = evenly_spaced_indices(len(dataset), args.verify_samples)
     validated = dataset.validate_images(indices=indices)
+    metadata = {
+        "repo_id": args.repo_id,
+        "requested_revision": args.revision,
+        "resolved_revision": resolved_revision,
+        "downloaded_at": datetime.now(timezone.utc).isoformat(),
+        "sample_count": len(dataset),
+        "validated_sample_ids": [item["sample_id"] for item in validated],
+    }
+    (Path(local_dir) / "drsgui_download_metadata.json").write_text(
+        json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     print(f"Downloaded dataset to: {local_dir}")
+    print(f"Resolved revision: {resolved_revision}")
     print(f"Loaded annotations: {len(dataset)} samples")
     print(f"Validated real images: {len(validated)}")
     for item in validated:
