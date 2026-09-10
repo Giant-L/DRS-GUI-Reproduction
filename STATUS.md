@@ -19,7 +19,8 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 
 ## Working
 
-- Final Stage 1 documentation, clean-tree verification, and `main` push.
+- Stage 1 code and offline validation are complete on `main`.
+- Real-model smoke inference is pending an explicitly configured API key or a reachable UGround server.
 
 ## Failed / Blocked
 
