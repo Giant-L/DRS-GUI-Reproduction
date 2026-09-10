@@ -243,10 +243,25 @@ class ScreenSpotProDataset(Sequence[GroundingSample]):
             )
         return image_path
 
-    def validate_images(self, *, limit: int | None = None) -> list[dict[str, Any]]:
+    def validate_images(
+        self,
+        *,
+        limit: int | None = None,
+        indices: Sequence[int] | None = None,
+    ) -> list[dict[str, Any]]:
         """Open images and verify actual dimensions against annotations."""
 
-        selected = self._samples if limit is None else self._samples[:limit]
+        if limit is not None and indices is not None:
+            raise ValueError("limit and indices are mutually exclusive")
+        if limit is not None and limit < 0:
+            raise ValueError("limit must be non-negative")
+        if indices is not None:
+            try:
+                selected = [self._samples[index] for index in indices]
+            except IndexError as exc:
+                raise IndexError("validation index lies outside the dataset") from exc
+        else:
+            selected = self._samples if limit is None else self._samples[:limit]
         results: list[dict[str, Any]] = []
         for sample in selected:
             with Image.open(sample.image_path) as image:
@@ -263,6 +278,9 @@ class ScreenSpotProDataset(Sequence[GroundingSample]):
                     "sample_id": sample.sample_id,
                     "image_filename": sample.image_filename,
                     "image_size": list(actual_size),
+                    "application": sample.application,
+                    "group": sample.group,
+                    "ui_type": sample.ui_type,
                 }
             )
         return results

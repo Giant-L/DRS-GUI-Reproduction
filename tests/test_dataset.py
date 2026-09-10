@@ -56,6 +56,12 @@ def test_validate_image_detects_annotation_size_mismatch(tmp_path: Path) -> None
         dataset.validate_images(limit=1)
 
 
+def test_validate_images_rejects_conflicting_selection(tmp_path: Path) -> None:
+    dataset = ScreenSpotProDataset(_make_dataset(tmp_path))
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        dataset.validate_images(limit=1, indices=[0])
+
+
 def test_loader_rejects_path_traversal(tmp_path: Path) -> None:
     root = _make_dataset(tmp_path)
     annotation = root / "annotations" / "demo_windows.json"

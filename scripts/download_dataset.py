@@ -44,15 +44,30 @@ def main() -> None:
         max_workers=args.max_workers,
     )
     dataset = ScreenSpotProDataset(local_dir)
-    validated = dataset.validate_images(limit=args.verify_samples)
+    if args.verify_samples > len(dataset):
+        raise RuntimeError(
+            f"requested validation of {args.verify_samples} images, "
+            f"but dataset contains {len(dataset)}"
+        )
+    indices = evenly_spaced_indices(len(dataset), args.verify_samples)
+    validated = dataset.validate_images(indices=indices)
     print(f"Downloaded dataset to: {local_dir}")
     print(f"Loaded annotations: {len(dataset)} samples")
     print(f"Validated real images: {len(validated)}")
     for item in validated:
         print(
-            f"  {item['sample_id']}: {item['image_filename']} "
+            f"  {item['sample_id']} [{item['group']}/{item['ui_type']}]: "
+            f"{item['image_filename']} "
             f"{item['image_size'][0]}x{item['image_size'][1]}"
         )
+
+
+def evenly_spaced_indices(total: int, count: int) -> list[int]:
+    if total <= 0 or count <= 0 or count > total:
+        raise ValueError(f"invalid spaced selection: total={total}, count={count}")
+    if count == 1:
+        return [0]
+    return [round(index * (total - 1) / (count - 1)) for index in range(count)]
 
 
 if __name__ == "__main__":
