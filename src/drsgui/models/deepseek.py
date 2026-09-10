@@ -38,10 +38,10 @@ class DeepSeekVisionModel(GroundingModel):
         screenshot = load_image(image)
         width, height = screenshot.size
         prompt = (
-            "Locate the target GUI element described by the instruction in the full "
-            "screenshot. Return one representative point inside the target. The "
-            f"original screenshot size is {width}x{height} pixels. Return JSON only "
-            'as {"x": <original-pixel-x>, "y": <original-pixel-y>}. '
+            "Locate the target GUI element described by the instruction in the "
+            "provided screenshot image. Return one representative point inside the "
+            f"target. The provided image size is {width}x{height} pixels. Return JSON "
+            'only as {"x": <input-image-pixel-x>, "y": <input-image-pixel-y>}. '
             f"Instruction: {instruction}"
         )
         payload = {

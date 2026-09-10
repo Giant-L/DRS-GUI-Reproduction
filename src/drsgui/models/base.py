@@ -37,18 +37,19 @@ class ModelResponseError(ModelError):
 
 @dataclass(frozen=True, slots=True)
 class GroundingPrediction:
-    """A backend prediction normalized to original-screenshot pixels."""
+    """A backend prediction with an explicit coordinate-space declaration."""
 
     point: PixelPoint
     backend: str
     model: str
     raw_output: str
+    coordinate_space: str = "original_image_pixels"
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "point": self.point.to_list(),
-            "coordinate_space": "original_image_pixels",
+            "coordinate_space": self.coordinate_space,
             "backend": self.backend,
             "model": self.model,
             "raw_output": self.raw_output,
@@ -57,7 +58,11 @@ class GroundingPrediction:
 
 
 class GroundingModel(ABC):
-    """All backends must return coordinates in original screenshot pixels."""
+    """Backends return pixels for their exact input image.
+
+    Stage 1 passes the original screenshot. DRS passes a crop and relabels the
+    backend output as crop-local before restoring it to original pixels.
+    """
 
     backend_name: str
     model_name: str

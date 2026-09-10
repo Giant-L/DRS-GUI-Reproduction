@@ -44,9 +44,17 @@ class EmbeddingBackend(Protocol):
 class CachedUIElementPerceptor:
     """Load cached OmniParser-like output for deterministic core testing."""
 
-    source_name = "cached_ui_elements"
-
-    def __init__(self, elements: Sequence[UIElement]) -> None:
+    def __init__(
+        self,
+        elements: Sequence[UIElement],
+        *,
+        source_name: str = "cached_ui_elements",
+        sample_id: str | None = None,
+    ) -> None:
+        if not source_name.strip():
+            raise ValueError("cached perceptor source_name must not be empty")
+        self.source_name = source_name
+        self.sample_id = sample_id
         self._elements = tuple(elements)
         ids = [element.element_id for element in self._elements]
         if len(ids) != len(set(ids)):
@@ -64,11 +72,21 @@ class CachedUIElementPerceptor:
                     "'original_image_pixels'"
                 )
             values = payload.get("elements")
+            source_name = str(payload.get("source") or "cached_ui_elements")
+            sample_id = (
+                None if payload.get("sample_id") is None else str(payload["sample_id"])
+            )
         else:
             values = payload
+            source_name = "cached_ui_elements"
+            sample_id = None
         if not isinstance(values, list):
             raise ValueError("cached element JSON must contain an elements list")
-        return cls([UIElement.from_dict(value) for value in values])
+        return cls(
+            [UIElement.from_dict(value) for value in values],
+            source_name=source_name,
+            sample_id=sample_id,
+        )
 
     def parse(self, image: ImageInput, region: BBox) -> tuple[UIElement, ...]:
         del image
@@ -78,7 +96,10 @@ class CachedUIElementPerceptor:
 class PrecomputedSemanticScorer:
     """Use cached cosine scores; intended for isolated core tests and demos."""
 
-    source_name = "precomputed_relevance"
+    def __init__(self, source_name: str = "precomputed_relevance") -> None:
+        if not source_name.strip():
+            raise ValueError("semantic scorer source_name must not be empty")
+        self.source_name = source_name
 
     def score(
         self,

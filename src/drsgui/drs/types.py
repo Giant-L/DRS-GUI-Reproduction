@@ -169,6 +169,22 @@ class SearchResult:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class DRSSearchOutput:
+    search: SearchResult
+    elements: tuple[UIElement, ...]
+    perceptor: str
+    semantic_scorer: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "perceptor": self.perceptor,
+            "semantic_scorer": self.semantic_scorer,
+            "elements": [element.to_dict() for element in self.elements],
+            "search": self.search.to_dict(),
+        }
+
+
 def require_scored(elements: Sequence[UIElement]) -> None:
     missing = [element.element_id for element in elements if element.relevance is None]
     if missing:
