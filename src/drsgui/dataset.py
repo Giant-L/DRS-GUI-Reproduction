@@ -81,14 +81,17 @@ class GroundingSample:
                 f"invalid image size for {self.sample_id}: "
                 f"{self.image_width}x{self.image_height}"
             )
+        # ScreenSpot-Pro contains a small number of boxes that extend one or
+        # more pixels beyond an image edge. Preserve the official GT exactly;
+        # reject only boxes that do not intersect the image at all.
         if (
-            self.gt_bbox.x1 < 0
-            or self.gt_bbox.y1 < 0
-            or self.gt_bbox.x2 > self.image_width
-            or self.gt_bbox.y2 > self.image_height
+            self.gt_bbox.x2 < 0
+            or self.gt_bbox.y2 < 0
+            or self.gt_bbox.x1 >= self.image_width
+            or self.gt_bbox.y1 >= self.image_height
         ):
             raise ValueError(
-                f"bbox {self.gt_bbox.to_list()} lies outside "
+                f"bbox {self.gt_bbox.to_list()} does not intersect "
                 f"{self.image_width}x{self.image_height} for {self.sample_id}"
             )
 

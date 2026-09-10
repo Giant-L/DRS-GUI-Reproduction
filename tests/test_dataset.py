@@ -64,3 +64,23 @@ def test_loader_rejects_path_traversal(tmp_path: Path) -> None:
     annotation.write_text(json.dumps(rows), encoding="utf-8")
     with pytest.raises(DatasetFormatError, match="escapes"):
         ScreenSpotProDataset(root, require_images=False)
+
+
+def test_loader_preserves_partially_out_of_bounds_official_bbox(tmp_path: Path) -> None:
+    root = _make_dataset(tmp_path)
+    annotation = root / "annotations" / "demo_windows.json"
+    rows = json.loads(annotation.read_text(encoding="utf-8"))
+    rows[0]["bbox"] = [10, -1, 30, 20]
+    annotation.write_text(json.dumps(rows), encoding="utf-8")
+    dataset = ScreenSpotProDataset(root)
+    assert dataset[0].gt_bbox.to_list() == [10.0, -1.0, 30.0, 20.0]
+
+
+def test_loader_rejects_bbox_fully_outside_image(tmp_path: Path) -> None:
+    root = _make_dataset(tmp_path)
+    annotation = root / "annotations" / "demo_windows.json"
+    rows = json.loads(annotation.read_text(encoding="utf-8"))
+    rows[0]["bbox"] = [10, -30, 30, -1]
+    annotation.write_text(json.dumps(rows), encoding="utf-8")
+    with pytest.raises(DatasetFormatError, match="does not intersect"):
+        ScreenSpotProDataset(root)
