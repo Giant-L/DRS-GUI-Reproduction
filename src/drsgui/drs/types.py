@@ -98,6 +98,24 @@ class RewardBreakdown:
 
 
 @dataclass(frozen=True, slots=True)
+class RegionProposal:
+    action: PerceptualAction
+    source_region: BBox
+    region: BBox
+    selected_element_ids: tuple[str, ...]
+    details: Mapping[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "action": self.action.value,
+            "source_region": self.source_region.to_list(),
+            "region": self.region.to_list(),
+            "selected_element_ids": list(self.selected_element_ids),
+            "details": dict(self.details),
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class SearchTraceNode:
     node_id: int
     parent_id: int | None
