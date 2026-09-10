@@ -126,6 +126,8 @@ class SearchTraceNode:
     visits: int
     mean_value: float
     action_path: tuple[PerceptualAction, ...]
+    selected_element_ids: tuple[str, ...]
+    action_details: Mapping[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -138,6 +140,8 @@ class SearchTraceNode:
             "visits": self.visits,
             "mean_value": self.mean_value,
             "action_path": [action.value for action in self.action_path],
+            "selected_element_ids": list(self.selected_element_ids),
+            "action_details": dict(self.action_details),
         }
 
 

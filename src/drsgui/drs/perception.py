@@ -50,11 +50,13 @@ class CachedUIElementPerceptor:
         *,
         source_name: str = "cached_ui_elements",
         sample_id: str | None = None,
+        relevance_source: str = "precomputed_relevance",
     ) -> None:
         if not source_name.strip():
             raise ValueError("cached perceptor source_name must not be empty")
         self.source_name = source_name
         self.sample_id = sample_id
+        self.relevance_source = relevance_source
         self._elements = tuple(elements)
         ids = [element.element_id for element in self._elements]
         if len(ids) != len(set(ids)):
@@ -76,16 +78,21 @@ class CachedUIElementPerceptor:
             sample_id = (
                 None if payload.get("sample_id") is None else str(payload["sample_id"])
             )
+            relevance_source = str(
+                payload.get("relevance_source") or "precomputed_relevance"
+            )
         else:
             values = payload
             source_name = "cached_ui_elements"
             sample_id = None
+            relevance_source = "precomputed_relevance"
         if not isinstance(values, list):
             raise ValueError("cached element JSON must contain an elements list")
         return cls(
             [UIElement.from_dict(value) for value in values],
             source_name=source_name,
             sample_id=sample_id,
+            relevance_source=relevance_source,
         )
 
     def parse(self, image: ImageInput, region: BBox) -> tuple[UIElement, ...]:

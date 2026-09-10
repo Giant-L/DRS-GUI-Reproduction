@@ -44,7 +44,7 @@ def main() -> None:
             f"element cache belongs to {perceptor.sample_id}, not {sample.sample_id}"
         )
     config = DRSConfig()
-    scorer = PrecomputedSemanticScorer(source_name="cached_precomputed_relevance")
+    scorer = PrecomputedSemanticScorer(source_name=perceptor.relevance_source)
     searcher = DynamicRegionSearcher(
         perceptor=perceptor,
         semantic_scorer=scorer,

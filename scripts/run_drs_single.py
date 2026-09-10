@@ -56,7 +56,7 @@ def main() -> None:
         pipeline = DRSGroundingPipeline(
             DynamicRegionSearcher(
                 perceptor,
-                PrecomputedSemanticScorer(source_name="cached_precomputed_relevance"),
+                PrecomputedSemanticScorer(source_name=perceptor.relevance_source),
                 MCTSActionPlanner(config),
             ),
             build_model(args.backend, settings),
@@ -82,7 +82,7 @@ def main() -> None:
         "instruction": sample.instruction,
         "backend": args.backend,
         "perceptor": perceptor.source_name,
-        "semantic_scorer": "cached_precomputed_relevance",
+        "semantic_scorer": perceptor.relevance_source,
         "prediction": prediction,
         "gt_bbox": sample.gt_bbox.to_list(),
         "correct": correct,

@@ -44,6 +44,7 @@ def test_mcts_uses_paper_budget_depth_and_initial_focus() -> None:
     assert len(result.nodes) <= config.rollout_budget + 1
     assert max(node.depth for node in result.nodes) <= config.max_depth
     assert result.best_reward.total == max(node.reward.total for node in result.nodes)
+    assert result.nodes[0].selected_element_ids
 
 
 def test_mcts_is_deterministic_for_equal_input() -> None:

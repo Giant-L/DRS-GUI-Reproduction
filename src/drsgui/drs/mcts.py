@@ -121,6 +121,14 @@ class MCTSActionPlanner:
                 visits=node.visits,
                 mean_value=node.mean_value,
                 action_path=node.action_path,
+                selected_element_ids=(
+                    ()
+                    if node.proposal is None
+                    else node.proposal.selected_element_ids
+                ),
+                action_details=(
+                    {} if node.proposal is None else node.proposal.details
+                ),
             )
             for node in nodes
         )

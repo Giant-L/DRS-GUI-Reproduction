@@ -30,6 +30,8 @@ def test_cached_perceptor_loads_declared_global_coordinates(tmp_path: Path) -> N
         json.dumps(
             {
                 "coordinate_space": "original_image_pixels",
+                "source": "test_parser_cache",
+                "relevance_source": "test_scores",
                 "elements": [
                     {
                         "element_id": "save",
@@ -46,6 +48,8 @@ def test_cached_perceptor_loads_declared_global_coordinates(tmp_path: Path) -> N
     perceptor = CachedUIElementPerceptor.from_json(path)
     parsed = perceptor.parse("unused.png", BBox(0, 0, 100, 100))
     assert parsed[0].element_id == "save"
+    assert perceptor.source_name == "test_parser_cache"
+    assert perceptor.relevance_source == "test_scores"
 
 
 def test_cached_perceptor_rejects_unspecified_coordinates(tmp_path: Path) -> None:
