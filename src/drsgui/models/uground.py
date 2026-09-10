@@ -40,6 +40,8 @@ class UGroundModel(GroundingModel):
             "of a specific area/element/object on the screen based on a description.\n"
             "- Point to the center or a representative point within the described "
             "area/element/object as accurately as possible.\n"
+            "- If the description is unclear or ambiguous, infer the most relevant "
+            "area or element from its likely context or purpose.\n"
             "- Return a single string (x, y).\n\n"
             f"Description: {instruction}\n\nAnswer:"
         )

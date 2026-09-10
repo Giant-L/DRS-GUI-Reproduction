@@ -109,6 +109,16 @@ def parse_coordinate(raw_output: str) -> PixelPoint:
         if parsed is not None:
             candidates.append(parsed)
 
+    number = r"(-?(?:\d+(?:\.\d*)?|\.\d+))"
+    bbox_pattern = re.compile(
+        rf"[\(\[]\s*{number}\s*,\s*{number}\s*,\s*"
+        rf"{number}\s*,\s*{number}\s*[\)\]]"
+    )
+    candidates.extend(
+        PixelPoint((float(x1) + float(x2)) / 2, (float(y1) + float(y2)) / 2)
+        for x1, y1, x2, y2 in bbox_pattern.findall(text)
+    )
+
     pair_pattern = re.compile(
         r"[\(\[]\s*(-?(?:\d+(?:\.\d*)?|\.\d+))\s*,\s*"
         r"(-?(?:\d+(?:\.\d*)?|\.\d+))\s*[\)\]]"
@@ -192,11 +202,17 @@ def _point_from_json(value: Any) -> PixelPoint | None:
                 return None
         if "point" in value:
             return _point_from_json(value["point"])
-    if isinstance(value, list) and len(value) == 2:
+    if isinstance(value, list) and len(value) in {2, 4}:
         try:
-            return PixelPoint(float(value[0]), float(value[1]))
+            numbers = [float(item) for item in value]
         except (TypeError, ValueError):
             return None
+        if len(numbers) == 2:
+            return PixelPoint(*numbers)
+        return PixelPoint(
+            (numbers[0] + numbers[2]) / 2,
+            (numbers[1] + numbers[3]) / 2,
+        )
     return None
 
 

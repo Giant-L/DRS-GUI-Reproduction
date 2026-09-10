@@ -37,6 +37,8 @@ class FakeResponse:
         ('{"x": 12, "y": 34}', PixelPoint(12, 34)),
         ("(12.5, 34.25)", PixelPoint(12.5, 34.25)),
         ("[12, 34]", PixelPoint(12, 34)),
+        ("(10, 20, 30, 40)", PixelPoint(20, 30)),
+        ("[10, 20, 30, 40]", PixelPoint(20, 30)),
         ('```json\n{"x": 12, "y": 34}\n```', PixelPoint(12, 34)),
     ],
 )
