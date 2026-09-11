@@ -32,7 +32,7 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 ## Working
 
 - Stage 2 core code and bounded proxy demos are complete on `reproduction`.
-- One paper-component-aligned paired sample is complete; a fixed multi-sample comparison has not yet been run.
+- A fixed 20-sample paired DeepSeek smoke comparison is complete with all model and search failures retained.
 
 ## Failed / Blocked
 
@@ -59,6 +59,15 @@ Last updated: 2026-09-11 (Asia/Shanghai)
   - perception took another 1.52 seconds and must be included for end-to-end latency comparisons. The one paired sample shows a 73.6% grounding-token reduction, not an accuracy improvement.
 - Remote deployment regression: `AutoModel` incorrectly constructed a full T5 encoder-decoder from the encoder-only Instructor checkpoint. It was replaced with `T5EncoderModel`, eliminating random decoder initialization and the missing `decoder_input_ids` failure.
 - Private-tunnel regression: Requests inherited a transparent proxy in the elevated execution environment and returned an empty HTTP 502 before reaching Uvicorn. The private perception client now disables environment proxies; a regression assertion locks this behavior.
+- Fixed 20-sample paired real-data smoke comparison using the same `deepseek-flash` grounding backend:
+  - baseline: 2/20 correct (10%);
+  - DRS reproduction: 2/20 correct (10%); accuracy delta 0 percentage points;
+  - paired outcomes: 1 both correct, 1 DRS-only correct, 1 baseline-only correct, 17 both wrong;
+  - Best Region contained the GT center in 5/20 samples;
+  - DRS failure decomposition: 15 search-region misses and 3 grounding failures despite a region containing GT;
+  - grounding tokens: 21,503 baseline versus 9,130 DRS, a 57.5% reduction;
+  - mean grounding-call latency: 2.96 seconds baseline versus 1.63 seconds after DRS cropping; DRS additionally required 5.78 seconds mean remote perception latency;
+  - zero API/parse errors in either arm. This fixed, non-random subset is a smoke diagnostic, not ScreenSpot-Pro benchmark accuracy.
 - Six real ScreenSpot-Pro screenshots were used for search-only demos with `tesseract_ocr_proxy_non_paper` elements and `token_overlap_proxy_non_paper` relevance. No grounding model was called.
 - Post-search GT-center diagnostic, with all cases retained:
   - `fruitloops_windows_8`: false
@@ -87,7 +96,7 @@ bash deployment/perception_service/start_autodl.sh
 
 ## Next Step
 
-1. Run a predeclared fixed six-sample subset with the same DeepSeek backend for baseline and DRS; report paired results with all failures retained.
+1. Inspect the 15 search-region misses from the fixed 20-sample comparison before increasing the sample count.
 2. Run one or two samples with a reachable UGround-V1-2B server and persist both baseline and DRS results.
-3. Inspect search traces and crop/global coordinate overlays before increasing to 20 samples.
-4. Ask the authors for the unspecified values and behaviors listed in `REPRODUCTION_GAPS.md`.
+3. Compare the exact OmniParser checkpoint and unspecified search parameters with the authors' environment.
+4. Only after the region-recall gap is understood, predeclare a larger 100-sample subset.
