@@ -22,13 +22,14 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 - Implemented Best Region cropping, explicit crop-local coordinate labeling, and restoration to original screenshot pixels.
 - Implemented full MCTS trace/result persistence and search visualization.
 - Verified the configured DeepSeek `deepseek-flash` endpoint with one real ScreenSpot-Pro full-screen grounding request.
-- Passed 64 offline unit/integration tests on Python 3.11.5.
+- Implemented a private remote OmniParser V2 + Instructor-large GPU service contract and GT-free local cache client.
+- Passed 69 offline unit/integration tests on Python 3.11.5.
 - Kept dataset files, outputs, checkpoints, private tasks, `.env`, and paper PDFs out of Git.
 
 ## Working
 
 - Stage 2 core code and bounded proxy demos are complete on `reproduction`.
-- Paper-aligned OmniParser V2 + Instructor-large + real grounding-model integration remains pending compatible model resources.
+- Paper-aligned OmniParser V2 + Instructor-large code integration is complete; installation and one-sample inference on the rented RTX 4090 remain pending SSH access.
 
 ## Failed / Blocked
 
@@ -44,7 +45,7 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 - No benchmark results yet.
 - Dataset integrity result: 1,581/1,581 referenced images present; 10/10 evenly spaced real images opened with dimensions matching annotations.
 - Stage 1 checkpoint result: 36/36 offline tests passed at the baseline commit.
-- DRS test result: 64/64 offline tests passed.
+- DRS test result: 69/69 offline tests passed.
 - Real DeepSeek baseline smoke test on `eviews_windows_3`: prediction `(1305, 528)` lies inside GT bbox `[1275, 521, 1340, 549]`; latency 2.93 seconds; 1,084 total tokens. This is one real sample, not benchmark accuracy.
 - The first request returned a truncated JSON fragment because DeepSeek thinking mode consumed the 64-token output allowance. The adapter now explicitly disables thinking; the same-sample regression request completed successfully, and the behavior is locked by an offline test.
 - Six real ScreenSpot-Pro screenshots were used for search-only demos with `tesseract_ocr_proxy_non_paper` elements and `token_overlap_proxy_non_paper` relevance. No grounding model was called.
@@ -69,6 +70,7 @@ python scripts/download_dataset.py --output data/ScreenSpot-Pro --verify-samples
 python -m pytest -q
 python scripts/run_drs_search_demo.py --index 232 --elements tasks/drs_demo_cache/eviews_windows_3.json
 python scripts/run_drs_single.py --backend uground --index 232 --elements tasks/drs_demo_cache/eviews_windows_3.json
+python scripts/cache_remote_perception.py --index 232
 ```
 
 ## Next Step

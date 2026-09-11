@@ -23,6 +23,10 @@ class Settings:
     uground_api_key: str
     uground_model: str
     uground_timeout_seconds: float
+    perception_api_base: str
+    perception_api_key: str
+    perception_timeout_seconds: float
+    perception_cache_dir: Path
 
     @classmethod
     def from_env(cls, env_file: str | Path | None = ".env") -> "Settings":
@@ -52,6 +56,16 @@ class Settings:
             uground_timeout_seconds=_positive_float_env(
                 "UGROUND_TIMEOUT_SECONDS", 120.0
             ),
+            perception_api_base=os.getenv(
+                "PERCEPTION_API_BASE", "http://127.0.0.1:8010"
+            ),
+            perception_api_key=os.getenv("PERCEPTION_API_KEY", ""),
+            perception_timeout_seconds=_positive_float_env(
+                "PERCEPTION_TIMEOUT_SECONDS", 300.0
+            ),
+            perception_cache_dir=Path(
+                os.getenv("PERCEPTION_CACHE_DIR", "tasks/perception_cache")
+            ).expanduser(),
         )
 
 

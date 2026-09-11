@@ -266,6 +266,24 @@ python scripts/run_drs_single.py \
 
 The single-sample runner persists model failures and exits non-zero; it does not silently discard them. A fair benchmark requires OmniParser V2 and Instructor-large caches or live outputs, plus the same grounding backend/configuration for baseline and DRS.
 
+## Remote paper-aligned perception
+
+`deployment/perception_service` provides a private GPU service that composes the
+official OmniParser V2 output with `hkunlp/instructor-large` relevance scoring.
+It converts OmniParser's normalized boxes to original screenshot pixels and never
+accepts ground truth. Keep the service bound to the GPU host's `127.0.0.1:8010`
+and access it through an SSH tunnel.
+
+After the tunnel and ignored `.env` variables are configured, cache one sample:
+
+```bash
+python scripts/cache_remote_perception.py --index 232
+```
+
+Then pass `tasks/perception_cache/eviews_windows_3.json` to the existing DRS
+search or crop-grounding command. Full GPU installation and tunnel instructions
+are in `deployment/perception_service/README.md`.
+
 ## Tests
 
 The default suite is offline and requires neither a GPU nor an API key:
@@ -274,9 +292,9 @@ The default suite is offline and requires neither a GPU nor an API key:
 pytest
 ```
 
-It covers dataset parsing, image-size validation, bbox evaluation, coordinate conversions, invalid model responses, Focus, Shift, Scatter, all reward terms, MCTS, cached perception, semantic cosine scoring, visualization, crop grounding, and result persistence.
+It covers dataset parsing, image-size validation, bbox evaluation, coordinate conversions, invalid model responses, Focus, Shift, Scatter, all reward terms, MCTS, cached and remote perception contracts, semantic cosine scoring, visualization, crop grounding, and result persistence.
 
-The current `reproduction` suite passes 64 offline tests. The downloaded snapshot has 1,581 annotated samples and 1,581 referenced screenshots. The real-screenshot search demos described in `STATUS.md` use clearly labeled non-paper OCR/relevance proxies and are not grounding results.
+The current `reproduction` suite passes 69 offline tests. The downloaded snapshot has 1,581 annotated samples and 1,581 referenced screenshots. The real-screenshot search demos described in `STATUS.md` use clearly labeled non-paper OCR/relevance proxies and are not grounding results.
 
 ## Project status
 

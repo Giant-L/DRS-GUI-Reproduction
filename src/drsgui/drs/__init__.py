@@ -11,6 +11,7 @@ from drsgui.drs.perception import (
 )
 from drsgui.drs.pipeline import DRSGroundingPipeline, DRSGroundingPrediction
 from drsgui.drs.reward import RegionQualityReward
+from drsgui.drs.remote_perception import RemotePerceptionClient
 from drsgui.drs.search import DynamicRegionSearcher
 from drsgui.drs.types import PerceptualAction, SearchResult, UIElement
 
@@ -25,6 +26,7 @@ __all__ = [
     "PerceptualActions",
     "PrecomputedSemanticScorer",
     "RegionQualityReward",
+    "RemotePerceptionClient",
     "SearchResult",
     "SemanticRelevanceScorer",
     "UIElement",
