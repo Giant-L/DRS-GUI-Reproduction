@@ -22,8 +22,10 @@ class DRSConfig:
     reward_gamma: float = 0.2
 
     # Configurable reproduction assumptions absent from the main paper.
-    focus_outlier_distance_fraction: float = 0.35
-    focus_target_area_ratio: float = 0.60
+    # Calibrated conservatively against the paper's reported ~64% mean area
+    # reduction. These remain assumptions because the paper omits both values.
+    focus_outlier_distance_fraction: float = 0.55
+    focus_target_area_ratio: float = 0.80
     non_interactive_weight: float = 0.50
     semantic_temperature: float = 0.10
     numerical_epsilon: float = 1e-8

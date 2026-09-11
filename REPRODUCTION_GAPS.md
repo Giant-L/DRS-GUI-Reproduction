@@ -6,17 +6,17 @@ This file separates paper-specified behavior from implementation assumptions on 
 
 - **Paper description:** remove selected elements whose centers deviate markedly from the cluster centroid.
 - **Missing detail:** distance definition and threshold.
-- **Our assumption:** Euclidean center distance greater than `0.35 * current_region_diagonal` is an outlier. If this removes every element, retain the highest-relevance element.
-- **Reason:** deterministic, resolution-independent, and configurable through `focus_outlier_distance_fraction`.
-- **Possible impact:** directly changes target recall and the initial Focus region. The 0.35 value is not a paper default.
+- **Our assumption:** Euclidean center distance greater than `0.55 * current_region_diagonal` is an outlier. If this removes every element, retain the highest-relevance element.
+- **Reason:** deterministic, resolution-independent, and configurable through `focus_outlier_distance_fraction`. The original reimplementation used `0.35`; a fixed 10-sample search-only development diagnostic showed that this contributed to over-contraction. A more permissive `0.45`/`0.90` configuration improved search recall on a disjoint diagnostic group but reduced final grounding accuracy, so it was rejected rather than reported as an end-to-end improvement.
+- **Possible impact:** directly changes target recall and the initial Focus region. The 0.55 value is a calibrated reproduction assumption, not a paper default.
 
 ## Focus target shrink ratio
 
 - **Paper description:** if the minimal crop does not shrink sufficiently, iteratively remove the farthest element until a target shrink ratio is reached.
 - **Missing detail:** ratio, area-vs-side-length interpretation, and tie handling.
-- **Our assumption:** require crop area `<= 0.60 * previous_region_area`; recompute the centroid and remove the farthest element, breaking ties toward lower relevance and then stable element ID.
-- **Reason:** area is consistent with the paper's image-area reduction analysis and keeps the rule deterministic.
-- **Possible impact:** controls aggressiveness and may remove a true but spatially isolated target. The 0.60 value is not a paper default.
+- **Our assumption:** require crop area `<= 0.80 * previous_region_area`; recompute the centroid and remove the farthest element, breaking ties toward lower relevance and then stable element ID.
+- **Reason:** area is consistent with the paper's image-area reduction analysis and keeps the rule deterministic. The original `0.60` assumption compounded across repeated Focus actions and produced a mean final area far below the paper's reported approximately 36% of the original image. The selected `0.80` balances recall and crop compactness on the development diagnostic instead of maximizing recall alone.
+- **Possible impact:** the less aggressive threshold improves recall but can retain more clutter. It is a calibrated reproduction assumption, not a paper default.
 
 ## Percentage rounding
 

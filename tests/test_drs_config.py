@@ -22,6 +22,15 @@ def test_paper_specified_defaults_are_locked() -> None:
     )
 
 
+def test_focus_assumptions_are_conservative_and_explicit() -> None:
+    config = DRSConfig()
+    assert config.focus_outlier_distance_fraction == 0.55
+    assert config.focus_target_area_ratio == 0.80
+    assumptions = config.assumptions()
+    assert "0.55" in assumptions["focus_outlier_rule"]
+    assert assumptions["focus_target_area_ratio"] == 0.80
+
+
 def test_invalid_config_is_rejected() -> None:
     with pytest.raises(ValueError, match="sum to one"):
         DRSConfig(reward_alpha=0.5)

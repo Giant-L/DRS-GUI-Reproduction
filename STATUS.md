@@ -33,6 +33,7 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 
 - Stage 2 core code and bounded proxy demos are complete on `reproduction`.
 - Two disjoint fixed 20-sample paired DeepSeek smoke rounds are complete (40 samples total), with all model and search failures retained.
+- Focus assumptions were recalibrated to reduce repeated over-contraction; bounded search-only and end-to-end diagnostics are complete on disjoint 10-sample subsets.
 
 ## Failed / Blocked
 
@@ -85,6 +86,13 @@ Last updated: 2026-09-11 (Asia/Shanghai)
   - grounding tokens: 43,046 baseline versus 18,590 DRS, a 56.8% reduction;
   - mean grounding-call latency: 4.36 seconds baseline versus 1.72 seconds after cropping, plus 6.50 seconds mean remote perception latency;
   - this is a fixed, non-random, DeepSeek-based smoke subset—not paper-aligned UGround benchmark accuracy and not evidence of an accuracy gain.
+- Focus over-contraction investigation (all subsets fixed before their results were inspected):
+  - on the 10-sample development subset `[0,158,250,395,553,711,869,1027,1145,1382]`, the original assumptions (`outlier=0.35`, `target_area=0.60`) selected a GT-containing Best Region in 1/10 cases with 8.6% mean retained area;
+  - every development sample had at least one MCTS candidate containing GT, confirming that final reward selection and repeated contraction—not an inability to generate candidates—was the immediate failure mechanism;
+  - an aggressive recall configuration (`0.45`, `0.90`) raised search recall from 3/10 to 7/10 on the disjoint validation subset, but new DeepSeek grounding fell from the historical old-DRS 1/10 to 0/10. It was rejected as the default because larger crops restored clutter;
+  - the final balanced assumptions are `outlier=0.55`, `target_area=0.80`. On the untouched final subset `[79,232,316,474,632,790,948,1066,1303,1501]`, Best Region recall improved from 3/10 to 5/10 while mean retained area changed from 11.9% to 28.4%;
+  - final grounding on that subset used only 10 new DRS calls and reused persisted baseline/old-DRS records: saved baseline 1/10, old DRS 1/10, balanced DRS 0/10, zero new API errors;
+  - conclusion: the core had an over-contraction assumption gap and search recall improved, but this did not produce an end-to-end accuracy gain with `deepseek-flash`. The weak/non-paper-aligned grounder and semantic/reward ranking remain separate bottlenecks.
 - Six real ScreenSpot-Pro screenshots were used for search-only demos with `tesseract_ocr_proxy_non_paper` elements and `token_overlap_proxy_non_paper` relevance. No grounding model was called.
 - Post-search GT-center diagnostic, with all cases retained:
   - `fruitloops_windows_8`: false
@@ -109,11 +117,12 @@ python scripts/run_drs_search_demo.py --index 232 --elements tasks/drs_demo_cach
 python scripts/run_drs_single.py --backend uground --index 232 --elements tasks/drs_demo_cache/eviews_windows_3.json
 python scripts/cache_remote_perception.py --index 232
 bash deployment/perception_service/start_autodl.sh
+python scripts/eval_search_recall.py --case 232=tasks/perception_cache_gpu/eviews_windows_3.json --focus-outlier 0.55 --focus-target-area-ratio 0.80 --output outputs/search_diagnostic
 ```
 
 ## Next Step
 
-1. Inspect the 29 search-region misses from the combined fixed 40-sample comparison before increasing the sample count.
-2. Run one or two samples with a reachable UGround-V1-2B server and persist both baseline and DRS results.
-3. Compare the exact OmniParser checkpoint and unspecified search parameters with the authors' environment.
-4. Only after the region-recall gap is understood, predeclare a larger 100-sample subset.
+1. Run the balanced search with a reachable UGround-V1-2B or Qwen2.5-VL backend; DeepSeek crop behavior did not convert higher region recall into accuracy.
+2. Audit Instructor-large score separation and the reward's preference for compact high-coverage distractor regions without using GT during selection.
+3. Compare the exact Focus thresholds and shrink ratio with the authors' environment; the new values remain calibrated assumptions.
+4. Only after the grounder and reward gap are understood, predeclare a larger subset.
