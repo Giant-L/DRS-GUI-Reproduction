@@ -7,7 +7,7 @@ This repository is deliberately split by Git branch:
 - `main`: a reproducible full-screen GUI-grounding baseline.
 - `reproduction`: DRS-GUI search components, created only after the baseline is stable.
 
-The current `main` branch contains Stage 1 only. It does **not** implement OmniParser, semantic relevance, Focus, Shift, Scatter, region reward, or MCTS.
+The current `reproduction` branch inherits the tested Stage 1 baseline and adds a paper-guided implementation of the DRS-GUI core. The `main` branch remains the baseline-only comparison point.
 
 ## Stage 1 pipeline
 
@@ -27,6 +27,45 @@ Instruction + Full Screenshot
 
 The evaluation rule follows ScreenSpot-Pro: a prediction is correct when the predicted point lies inside or on the boundary of the ground-truth bounding box.
 
+## DRS-GUI pipeline (`reproduction`)
+
+```text
+Instruction + Full Screenshot
+             |
+             v
+ UI Element Perceptor + Semantic Relevance
+             |
+             v
+      Focus / Shift / Scatter
+             |
+             v
+      MCTS Action Planner
+             |
+             v
+          Best Region
+             |
+             v
+    Same Grounding Model on Crop
+             |
+             v
+ Crop-local Point -> Original-pixel Point
+             |
+             v
+          Evaluator
+```
+
+The implemented core follows Methodology 3.1-3.4 and the paper's experimental settings:
+
+- OmniParser-style elements contain global-pixel `bbox`, `description`, and `interactive` fields.
+- Instruction and element descriptions share a domain prefix, final-hidden-state mean pooling, and cosine similarity. The optional Instructor backend is lazy and not part of the default lightweight installation.
+- Focus keeps the top 15% relevant visible elements.
+- Scatter considers the top 10% external elements and never exceeds 1.5x the current region area.
+- Shift considers the top 15% external anchors and enforces IoU <= 0.3.
+- MCTS uses rollout budget 8, post-initial-Focus depth 3, and UCT constant 1.
+- Reward implements interaction-weighted relevance, UI coverage consistency, and semantic concentration with weights 0.4/0.4/0.2.
+
+The paper does not specify several code-level choices. Every selected default is centralized in `DRSConfig`, serialized with search results, and documented in `REPRODUCTION_GAPS.md` rather than being presented as an official value.
+
 ## Repository layout
 
 ```text
@@ -42,12 +81,25 @@ The evaluation rule follows ScreenSpot-Pro: a prediction is correct when the pre
 │   ├── config.py
 │   ├── dataset.py
 │   ├── evaluator.py
+│   ├── drs/
+│   │   ├── actions.py
+│   │   ├── config.py
+│   │   ├── geometry.py
+│   │   ├── mcts.py
+│   │   ├── perception.py
+│   │   ├── pipeline.py
+│   │   ├── reward.py
+│   │   ├── search.py
+│   │   ├── types.py
+│   │   └── visualization.py
 │   └── models/
 │       ├── base.py
 │       ├── deepseek.py
 │       └── uground.py
 ├── scripts/
 │   ├── download_dataset.py
+│   ├── run_drs_search_demo.py
+│   ├── run_drs_single.py
 │   ├── run_single.py
 │   └── eval_baseline.py
 └── tests/
@@ -100,7 +152,9 @@ The loader treats each annotation's `img_filename` as the source of truth. It ex
 
 The repository-wide contract is strict:
 
-- `GroundingModel.predict(...)` returns a point in **original screenshot pixel coordinates**.
+- A backend returns pixels relative to the exact image it receives.
+- In Stage 1 that image is the full screenshot, so the result is already in original pixels.
+- In DRS the backend receives the Best Region crop; the pipeline explicitly labels its output `crop_local_pixels`, then restores and labels `original_image_pixels` before evaluation.
 - The evaluator never guesses the model coordinate system.
 - UGround's official `[0, 1000)` output is converted inside `UGroundModel`.
 - Invalid, ambiguous, non-finite, or out-of-image coordinates produce explicit errors.
@@ -169,6 +223,49 @@ Each run creates an ignored directory under `outputs/` containing:
 
 Results produced by synthetic unit-test models are test artifacts, not benchmark results. Real results are never fabricated or silently filtered.
 
+## Run the DRS core with cached elements
+
+The paper core is deliberately testable without OmniParser, Instructor-large, a GPU, or network access. A cache must declare its provenance and use original screenshot pixel coordinates:
+
+```json
+{
+  "coordinate_space": "original_image_pixels",
+  "sample_id": "sample_id",
+  "source": "omniparser_v2_or_explicit_proxy_name",
+  "relevance_source": "instructor_large_or_explicit_proxy_name",
+  "elements": [
+    {
+      "element_id": "element-0",
+      "bbox": [10, 20, 80, 50],
+      "description": "Save",
+      "interactive": true,
+      "relevance": 0.91
+    }
+  ]
+}
+```
+
+Run search and visualization for exactly one ScreenSpot-Pro sample:
+
+```bash
+python scripts/run_drs_search_demo.py \
+  --index 232 \
+  --elements tasks/drs_demo_cache/eviews_windows_3.json
+```
+
+This command performs region search only. It stores the complete MCTS trace, component rewards, selected element IDs, assumptions, and visualization. GT is added only after search as a diagnostic overlay and is never passed to the perceptor, actions, reward, or planner.
+
+With a configured backend, run one crop-grounding sample explicitly:
+
+```bash
+python scripts/run_drs_single.py \
+  --backend uground \
+  --index 232 \
+  --elements tasks/drs_demo_cache/eviews_windows_3.json
+```
+
+The single-sample runner persists model failures and exits non-zero; it does not silently discard them. A fair benchmark requires OmniParser V2 and Instructor-large caches or live outputs, plus the same grounding backend/configuration for baseline and DRS.
+
 ## Tests
 
 The default suite is offline and requires neither a GPU nor an API key:
@@ -177,9 +274,9 @@ The default suite is offline and requires neither a GPU nor an API key:
 pytest
 ```
 
-It covers dataset parsing, image-size validation, bbox evaluation, coordinate conversions, invalid model responses, and baseline result persistence.
+It covers dataset parsing, image-size validation, bbox evaluation, coordinate conversions, invalid model responses, Focus, Shift, Scatter, all reward terms, MCTS, cached perception, semantic cosine scoring, visualization, crop grounding, and result persistence.
 
-The current Stage 1 suite passes 36 offline tests. The downloaded snapshot has 1,581 annotated samples and 1,581 referenced screenshots; ten evenly spaced real samples were opened and dimension-checked. This is a data/pipeline validation result, not grounding accuracy.
+The current `reproduction` suite passes 64 offline tests. The downloaded snapshot has 1,581 annotated samples and 1,581 referenced screenshots. The real-screenshot search demos described in `STATUS.md` use clearly labeled non-paper OCR/relevance proxies and are not grounding results.
 
 ## Project status
 
