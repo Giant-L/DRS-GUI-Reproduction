@@ -68,6 +68,7 @@ def test_deepseek_adapter_returns_original_pixel_coordinate(monkeypatch: pytest.
     assert prediction.point == PixelPoint(40, 20)
     assert captured["url"] == "https://example.test/chat/completions"
     assert captured["payload"]["temperature"] == 0
+    assert captured["payload"]["thinking"] == {"type": "disabled"}
     image_url = captured["payload"]["messages"][0]["content"][1]["image_url"]["url"]
     assert image_url.startswith("data:image/png;base64,")
 

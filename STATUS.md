@@ -21,6 +21,7 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 - Implemented deterministic MCTS selection, expansion, reward evaluation, and backpropagation with `N=8`, `H=3`, and `c=1`.
 - Implemented Best Region cropping, explicit crop-local coordinate labeling, and restoration to original screenshot pixels.
 - Implemented full MCTS trace/result persistence and search visualization.
+- Verified the configured DeepSeek `deepseek-flash` endpoint with one real ScreenSpot-Pro full-screen grounding request.
 - Passed 64 offline unit/integration tests on Python 3.11.5.
 - Kept dataset files, outputs, checkpoints, private tasks, `.env`, and paper PDFs out of Git.
 
@@ -32,9 +33,8 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 ## Failed / Blocked
 
 - No blocker for the model-independent DRS core.
-- Real grounding inference has not been run: no valid DeepSeek key was read from `.env`, and no UGround inference server is available.
+- No UGround inference server is currently available.
 - Local UGround loading was deliberately not attempted on this 8 GB Apple M2 host. No checkpoint was downloaded.
-- No paid DeepSeek API request was launched automatically.
 - OmniParser V2 and Instructor-large were not downloaded or executed on the 8 GB Apple M2 host.
 - Public CVF/arXiv searches and the arXiv source archive contain no accessible DRS-GUI implementation or supplementary parameter file. The source package repeats the main-paper specification but does not provide `lambda`, `tau`, Focus thresholds, or the prefix template.
 - Four PNG files are present in the official snapshot but are not referenced by any annotation; they are retained as upstream data rather than deleted.
@@ -45,6 +45,8 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 - Dataset integrity result: 1,581/1,581 referenced images present; 10/10 evenly spaced real images opened with dimensions matching annotations.
 - Stage 1 checkpoint result: 36/36 offline tests passed at the baseline commit.
 - DRS test result: 64/64 offline tests passed.
+- Real DeepSeek baseline smoke test on `eviews_windows_3`: prediction `(1305, 528)` lies inside GT bbox `[1275, 521, 1340, 549]`; latency 2.93 seconds; 1,084 total tokens. This is one real sample, not benchmark accuracy.
+- The first request returned a truncated JSON fragment because DeepSeek thinking mode consumed the 64-token output allowance. The adapter now explicitly disables thinking; the same-sample regression request completed successfully, and the behavior is locked by an offline test.
 - Six real ScreenSpot-Pro screenshots were used for search-only demos with `tesseract_ocr_proxy_non_paper` elements and `token_overlap_proxy_non_paper` relevance. No grounding model was called.
 - Post-search GT-center diagnostic, with all cases retained:
   - `fruitloops_windows_8`: false

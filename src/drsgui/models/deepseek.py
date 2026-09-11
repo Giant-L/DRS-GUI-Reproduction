@@ -61,6 +61,7 @@ class DeepSeekVisionModel(GroundingModel):
                     ],
                 }
             ],
+            "thinking": {"type": "disabled"},
             "temperature": 0,
             "max_tokens": 64,
             "response_format": {"type": "json_object"},
