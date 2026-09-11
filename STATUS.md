@@ -32,7 +32,7 @@ Last updated: 2026-09-11 (Asia/Shanghai)
 ## Working
 
 - Stage 2 core code and bounded proxy demos are complete on `reproduction`.
-- A fixed 20-sample paired DeepSeek smoke comparison is complete with all model and search failures retained.
+- Two disjoint fixed 20-sample paired DeepSeek smoke rounds are complete (40 samples total), with all model and search failures retained.
 
 ## Failed / Blocked
 
@@ -68,6 +68,23 @@ Last updated: 2026-09-11 (Asia/Shanghai)
   - grounding tokens: 21,503 baseline versus 9,130 DRS, a 57.5% reduction;
   - mean grounding-call latency: 2.96 seconds baseline versus 1.63 seconds after DRS cropping; DRS additionally required 5.78 seconds mean remote perception latency;
   - zero API/parse errors in either arm. This fixed, non-random subset is a smoke diagnostic, not ScreenSpot-Pro benchmark accuracy.
+- Second disjoint fixed 20-sample paired smoke comparison:
+  - baseline: 2/20 correct (10%);
+  - DRS reproduction: 2/20 correct (10%); accuracy delta 0 percentage points;
+  - paired outcomes: 2 DRS-only correct, 2 baseline-only correct, 16 both wrong;
+  - Best Region contained the GT center in 6/20 samples; DRS was correct on 2/6 region hits;
+  - grounding tokens: 21,543 baseline versus 9,460 DRS, a 56.1% reduction;
+  - mean grounding-call latency: 5.77 seconds baseline versus 1.82 seconds after DRS cropping; DRS additionally required 7.21 seconds mean remote perception latency;
+  - baseline had zero errors; DRS retained three failures (two empty model responses and one crop-local coordinate outside the crop). Token reduction is partly affected by the two empty responses, which report no usage.
+- Combined fixed 40-sample smoke diagnostic:
+  - baseline: 4/40 correct (10%); DRS reproduction: 4/40 correct (10%); accuracy delta 0 percentage points;
+  - paired outcomes: 1 both correct, 3 DRS-only correct, 3 baseline-only correct, 33 both wrong;
+  - Best Region recall: 11/40 (27.5%); DRS accuracy conditioned on a region hit: 4/11 (36.4%);
+  - DRS failures: 29 search-region misses and 7 grounding failures inside a region containing GT;
+  - mean Best Region area was 10.5% of the screenshot, an 89.5% mean image-area reduction;
+  - grounding tokens: 43,046 baseline versus 18,590 DRS, a 56.8% reduction;
+  - mean grounding-call latency: 4.36 seconds baseline versus 1.72 seconds after cropping, plus 6.50 seconds mean remote perception latency;
+  - this is a fixed, non-random, DeepSeek-based smoke subset—not paper-aligned UGround benchmark accuracy and not evidence of an accuracy gain.
 - Six real ScreenSpot-Pro screenshots were used for search-only demos with `tesseract_ocr_proxy_non_paper` elements and `token_overlap_proxy_non_paper` relevance. No grounding model was called.
 - Post-search GT-center diagnostic, with all cases retained:
   - `fruitloops_windows_8`: false
@@ -96,7 +113,7 @@ bash deployment/perception_service/start_autodl.sh
 
 ## Next Step
 
-1. Inspect the 15 search-region misses from the fixed 20-sample comparison before increasing the sample count.
+1. Inspect the 29 search-region misses from the combined fixed 40-sample comparison before increasing the sample count.
 2. Run one or two samples with a reachable UGround-V1-2B server and persist both baseline and DRS results.
 3. Compare the exact OmniParser checkpoint and unspecified search parameters with the authors' environment.
 4. Only after the region-recall gap is understood, predeclare a larger 100-sample subset.
