@@ -45,7 +45,8 @@ def main() -> None:
         raise SystemExit(
             f"element cache belongs to {perceptor.sample_id}, not {sample.sample_id}"
         )
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    started_at = datetime.now(timezone.utc)
+    timestamp = started_at.strftime("%Y%m%dT%H%M%SZ")
     destination = args.output or (
         settings.output_dir / f"{timestamp}_drs_{args.backend}_{sample.sample_id}"
     )
@@ -78,9 +79,15 @@ def main() -> None:
     latency = time.perf_counter() - started
     payload = {
         "experiment_type": "real_single_sample",
+        "timestamp": started_at.isoformat(),
         "sample_id": sample.sample_id,
         "instruction": sample.instruction,
         "backend": args.backend,
+        "model": (
+            settings.deepseek_model
+            if args.backend == "deepseek"
+            else settings.uground_model
+        ),
         "perceptor": perceptor.source_name,
         "semantic_scorer": perceptor.relevance_source,
         "prediction": prediction,

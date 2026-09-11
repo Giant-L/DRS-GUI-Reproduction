@@ -57,7 +57,8 @@ def main() -> None:
         platform=sample.platform,
     )
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    started_at = datetime.now(timezone.utc)
+    timestamp = started_at.strftime("%Y%m%dT%H%M%SZ")
     destination = args.output or (
         settings.output_dir / f"{timestamp}_drs_search_demo_{sample.sample_id}"
     )
@@ -68,6 +69,7 @@ def main() -> None:
     )
     payload = {
         "experiment_type": "real_screenshot_cached_elements_demo",
+        "timestamp": started_at.isoformat(),
         "is_benchmark": False,
         "sample_id": sample.sample_id,
         "instruction": sample.instruction,
