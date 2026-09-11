@@ -89,3 +89,11 @@ This file separates paper-specified behavior from implementation assumptions on 
 - **Our assumption:** only for six explicitly labeled smoke demos, Tesseract OCR boxes and token-overlap scores were cached. All OCR boxes were marked interactive because the proxy cannot infer interaction state.
 - **Reason:** verify real-image dimensions, action geometry, MCTS traces, and visualization without a model download.
 - **Possible impact:** major and expected; proxy results are not paper-aligned and must never be reported as DRS-GUI accuracy.
+
+## OmniParser V2 checkpoint revision
+
+- **Paper description:** use OmniParser V2 as the UI parser.
+- **Missing detail:** exact OmniParser source revision and detector checkpoint hash/version.
+- **Our assumption:** source commit `354021201345a96178360b28733573e27269f2de`, with the V2 `icon_detect/model.pt` and `icon_caption` weights mirrored by `AI-ModelScope/OmniParser-v2.0`.
+- **Reason:** the official Hugging Face host and its Xet blob endpoint timed out from the rented AutoDL instance, while ModelScope provided the original V2 file layout. The newer `icon_detect_v3` PR checkpoint was not substituted silently.
+- **Possible impact:** detector boxes may differ from the authors' unpublished environment or the repository's later YOLOv9-E checkpoint.

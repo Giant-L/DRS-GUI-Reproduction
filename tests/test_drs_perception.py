@@ -8,12 +8,24 @@ import pytest
 from drsgui.dataset import BBox
 from drsgui.drs.perception import (
     CachedUIElementPerceptor,
+    InstructorLargeEmbeddingBackend,
     PrecomputedSemanticScorer,
     SemanticRelevanceScorer,
     cosine_similarity,
     domain_prefix,
 )
 from drsgui.drs.types import UIElement
+
+
+def test_instructor_backend_accepts_local_model_path() -> None:
+    backend = InstructorLargeEmbeddingBackend(model_name="/models/instructor-large")
+
+    assert backend.model_name == "/models/instructor-large"
+
+
+def test_instructor_backend_rejects_empty_model_path() -> None:
+    with pytest.raises(ValueError, match="model_name cannot be empty"):
+        InstructorLargeEmbeddingBackend(model_name="  ")
 
 
 class FixedEmbeddingBackend:

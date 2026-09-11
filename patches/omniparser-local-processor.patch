@@ -1,0 +1,10 @@
+diff --git a/util/utils.py b/util/utils.py
+--- a/util/utils.py
++++ b/util/utils.py
+@@ -64,2 +64,5 @@
+-        processor = AutoProcessor.from_pretrained("microsoft/Florence-2-base", trust_remote_code=True)
++        processor_path = os.getenv(
++            "OMNIPARSER_PROCESSOR_PATH", "microsoft/Florence-2-base"
++        )
++        processor = AutoProcessor.from_pretrained(processor_path, trust_remote_code=True)
+         if device == 'cpu':

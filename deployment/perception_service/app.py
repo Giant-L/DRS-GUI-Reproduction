@@ -70,6 +70,7 @@ class PerceptionRuntime:
             }
         )
         embedding = InstructorLargeEmbeddingBackend(
+            model_name=os.getenv("INSTRUCTOR_MODEL_PATH"),
             device=os.getenv("INSTRUCTOR_DEVICE", "cuda"),
             batch_size=int(os.getenv("INSTRUCTOR_BATCH_SIZE", "32")),
             max_length=int(os.getenv("INSTRUCTOR_MAX_LENGTH", "512")),

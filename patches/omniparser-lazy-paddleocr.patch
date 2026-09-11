@@ -1,0 +1,40 @@
+diff --git a/util/utils.py b/util/utils.py
+--- a/util/utils.py
++++ b/util/utils.py
+@@ -18,16 +18,7 @@ import numpy as np
+ # %matplotlib inline
+ from matplotlib import pyplot as plt
+ import easyocr
+-from paddleocr import PaddleOCR
+ reader = easyocr.Reader(['en'])
+-paddle_ocr = PaddleOCR(
+-    lang='en',  # other lang also available
+-    use_angle_cls=False,
+-    use_gpu=False,  # using cuda will conflict with pytorch in the same process
+-    show_log=False,
+-    max_batch_size=1024,
+-    use_dilation=True,  # improves accuracy
+-    det_db_score_mode='slow',  # improves accuracy
+-    rec_batch_num=1024)
++paddle_ocr = None
+ import time
+ import base64
+@@ -520,6 +511,18 @@ def check_ocr_box(image_source: Union[str, Image.Image], display_img = True, out
+     image_np = np.array(image_source)
+     w, h = image_source.size
+     if use_paddleocr:
++        global paddle_ocr
++        if paddle_ocr is None:
++            from paddleocr import PaddleOCR
++            paddle_ocr = PaddleOCR(
++                lang='en',
++                use_angle_cls=False,
++                use_gpu=False,
++                show_log=False,
++                max_batch_size=1024,
++                use_dilation=True,
++                det_db_score_mode='slow',
++                rec_batch_num=1024)
+         if easyocr_args is None:
+             text_threshold = 0.5
+         else:

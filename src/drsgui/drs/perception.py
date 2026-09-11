@@ -163,12 +163,16 @@ class InstructorLargeEmbeddingBackend:
     def __init__(
         self,
         *,
+        model_name: str | None = None,
         device: str = "cpu",
         batch_size: int = 16,
         max_length: int = 512,
     ) -> None:
         if batch_size <= 0 or max_length <= 0:
             raise ValueError("batch_size and max_length must be positive")
+        if model_name is not None and not model_name.strip():
+            raise ValueError("model_name cannot be empty")
+        self.model_name = model_name or type(self).model_name
         self.device = device
         self.batch_size = batch_size
         self.max_length = max_length
@@ -178,14 +182,14 @@ class InstructorLargeEmbeddingBackend:
     def _load(self) -> tuple[Any, Any, Any]:
         try:
             import torch
-            from transformers import AutoModel, AutoTokenizer
+            from transformers import AutoTokenizer, T5EncoderModel
         except ImportError as exc:
             raise RuntimeError(
                 "Instructor-large requires optional dependencies torch and transformers"
             ) from exc
         if self._tokenizer is None or self._model is None:
             self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            self._model = AutoModel.from_pretrained(self.model_name).to(self.device)
+            self._model = T5EncoderModel.from_pretrained(self.model_name).to(self.device)
             self._model.eval()
         return torch, self._tokenizer, self._model
 

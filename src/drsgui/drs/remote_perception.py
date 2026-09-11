@@ -52,8 +52,10 @@ class RemotePerceptionClient:
         if self.api_key:
             headers["X-API-Key"] = self.api_key
         endpoint = f"{self.base_url.rstrip('/')}/v1/perceive"
+        session = requests.Session()
+        session.trust_env = False
         try:
-            response = requests.post(
+            response = session.post(
                 endpoint,
                 headers=headers,
                 json=payload,
@@ -63,6 +65,8 @@ class RemotePerceptionClient:
             raise RemotePerceptionError(
                 f"request to perception service failed: {exc}"
             ) from exc
+        finally:
+            session.close()
         if not response.ok:
             raise RemotePerceptionError(
                 f"perception service returned HTTP {response.status_code}: "

@@ -294,7 +294,7 @@ pytest
 
 It covers dataset parsing, image-size validation, bbox evaluation, coordinate conversions, invalid model responses, Focus, Shift, Scatter, all reward terms, MCTS, cached and remote perception contracts, semantic cosine scoring, visualization, crop grounding, and result persistence.
 
-The current `reproduction` suite passes 69 offline tests. The downloaded snapshot has 1,581 annotated samples and 1,581 referenced screenshots. The real-screenshot search demos described in `STATUS.md` use clearly labeled non-paper OCR/relevance proxies and are not grounding results.
+The current `reproduction` suite passes 71 offline tests. The downloaded snapshot has 1,581 annotated samples and 1,581 referenced screenshots. The real-screenshot search demos described in `STATUS.md` use clearly labeled non-paper OCR/relevance proxies and are not grounding results. A separate one-sample paper-component-aligned smoke result using remote OmniParser V2 and Instructor-large is documented there and must not be interpreted as benchmark accuracy.
 
 ## Project status
 

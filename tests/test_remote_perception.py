@@ -48,13 +48,14 @@ def test_remote_perception_builds_gt_free_request_and_validates_cache(
 ) -> None:
     captured: dict[str, Any] = {}
 
-    def fake_post(url: str, **kwargs: Any) -> FakeResponse:
+    def fake_post(session: Any, url: str, **kwargs: Any) -> FakeResponse:
+        captured["trust_env"] = session.trust_env
         captured["url"] = url
         captured["headers"] = kwargs["headers"]
         captured["payload"] = kwargs["json"]
         return FakeResponse(valid_response())
 
-    monkeypatch.setattr("drsgui.drs.remote_perception.requests.post", fake_post)
+    monkeypatch.setattr("requests.Session.post", fake_post)
     client = RemotePerceptionClient("https://perception.test/", api_key="test-token")
     cache = client.perceive(
         Image.new("RGB", (100, 50)),
@@ -65,6 +66,7 @@ def test_remote_perception_builds_gt_free_request_and_validates_cache(
     )
 
     assert captured["url"] == "https://perception.test/v1/perceive"
+    assert captured["trust_env"] is False
     assert captured["headers"]["X-API-Key"] == "test-token"
     assert captured["payload"]["image_data_url"].startswith("data:image/png;base64,")
     assert "gt_bbox" not in captured["payload"]
@@ -87,8 +89,8 @@ def test_remote_perception_rejects_contract_mismatch(
     payload = valid_response()
     payload[field] = value
     monkeypatch.setattr(
-        "drsgui.drs.remote_perception.requests.post",
-        lambda *args, **kwargs: FakeResponse(payload),
+        "requests.Session.post",
+        lambda self, *args, **kwargs: FakeResponse(payload),
     )
     client = RemotePerceptionClient("https://perception.test")
     with pytest.raises(RemotePerceptionError):
